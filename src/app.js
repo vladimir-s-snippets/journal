@@ -47,17 +47,86 @@ class UserForm extends React.Component {
 }
 
 class UserRow extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            fio: props.user.name
+        };
+
+        this.switchToEdit = this.switchToEdit.bind(this);
+        this.switchToView = this.switchToView.bind(this);
+        this.updateFIO = this.updateFIO.bind(this);
+    }
+
+    switchToEdit(event) {
+        this.props.openEditorHandle(this.props.user.id);
+        event.preventDefault();
+    }
+
+    switchToView(event) {
+        this.props.closeEditorHandle(this.props.user.id);
+        event.preventDefault();
+    }
+
+    updateFIO(event) {
+        this.setState({fio: event.target.value});
+    }
+
     render() {
-        return (
-            <li data-id={this.props.dataId}>{this.props.name}</li>
-        );
+        if (this.props.mode === 'EDIT') {
+            return (
+                <li data-id={this.props.user.id}>
+                    <input type="text" value={this.state.fio} onChange={this.updateFIO} />
+                    <button onClick={this.switchToView}>Сохранить</button>
+                </li>
+            );
+        }
+        else {
+            return (
+                <li data-id={this.props.user.id} onClick={this.switchToEdit}>{this.state.fio}</li>
+            );
+        }
     }
 }
 
 class UsersList extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = {editorId: null};
+        this.openEditor = this.openEditor.bind(this);
+        this.closeEditor = this.closeEditor.bind(this);
+    }
+
+    openEditor(id) {
+        this.setState({editorId: id});
+    }
+
+    closeEditor(id) {
+        this.setState((prevState, props) => {
+            if (id === prevState.editorId) {
+                return {editorId: null};
+            }
+            else {
+                return prevState;
+            }
+        });
+    }
+
     render() {
         let rows = this.props.users.map((user) => {
-            return (<UserRow key={user.id} dataId={user.id} name={user.name} />);
+            let mode = 'VIEW';
+            if (this.state.editorId === user.id) {
+                mode = 'EDIT';
+            }
+            return (
+                <UserRow
+                    key={user.id}
+                    user={user}
+                    mode={mode}
+                    openEditorHandle={this.openEditor}
+                    closeEditorHandle={this.closeEditor}
+                />
+            );
         });
         return (
             <ul>

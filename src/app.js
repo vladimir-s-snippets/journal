@@ -1,5 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import {createStore} from 'redux';
+import { Provider } from 'react-redux';
 
 class UserForm extends React.Component {
     constructor(props) {
@@ -160,6 +162,40 @@ const USERS = [
     {'name':'User 4', 'id':4},
     {'name':'User 5', 'id':5},
 ];
+
+function addUser(fio) {
+    return {
+        type: 'ADD_USER',
+        fio: fio
+    }
+}
+
+function journalApp(state, action) {
+    if (typeof state === 'undefined') {
+        // начальное состояние
+        return {
+            users: USERS,
+            departments: DEPARTMENTS
+        };
+    }
+
+    switch (action.type) {
+        case 'ADD_USER':
+            return Object.assign({}, state, {
+                users: [
+                    ...state.users,
+                    {
+                        name: action.fio,
+                        id: state.users.length++
+                    }
+                ]
+            });
+        default:
+            return state;
+    }
+}
+
+let store = createStore(journalApp);
 
 ReactDOM.render(
     <UsersView departments={DEPARTMENTS} users={USERS} />,

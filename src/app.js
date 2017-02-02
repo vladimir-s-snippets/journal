@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import {createStore} from 'redux';
 import { Provider } from 'react-redux';
+import { connect } from 'react-redux';
 
 class UserForm extends React.Component {
     constructor(props) {
@@ -25,6 +26,7 @@ class UserForm extends React.Component {
 
     handleAddUser(event) {
         console.log(this.state);
+        this.props.onAddUser(this.state.fio);
         event.preventDefault();
     }
 
@@ -142,7 +144,9 @@ class UsersView extends React.Component {
     render() {
         return (
             <div>
-                <UserForm departments={this.props.departments} />
+                <UserForm
+                    departments={this.props.departments}
+                    onAddUser={this.props.onAddUser} />
                 <UsersList users={this.props.users} />
             </div>
         );
@@ -186,7 +190,7 @@ function journalApp(state, action) {
                     ...state.users,
                     {
                         name: action.fio,
-                        id: state.users.length++
+                        id: ++state.users.length
                     }
                 ]
             });
@@ -197,7 +201,26 @@ function journalApp(state, action) {
 
 let store = createStore(journalApp);
 
+const mapStateToProps = (state) => {
+    return {
+        users: state.users,
+        departments: state.departments
+    }
+};
+
+const mapDispatchToProps = (dispatch) => {
+    return {
+        onAddUser: (fio) => {
+            dispatch(addUser(fio))
+        }
+    }
+};
+
+const CurrentUsersList = connect(mapStateToProps, mapDispatchToProps)(UsersView);
+
 ReactDOM.render(
-    <UsersView departments={DEPARTMENTS} users={USERS} />,
+    <Provider store={store}>
+        <CurrentUsersList />
+    </Provider>,
     document.getElementById('root')
 );

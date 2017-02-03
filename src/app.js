@@ -69,6 +69,8 @@ class UserRow extends React.Component {
 
     switchToView(event) {
         this.props.closeEditorHandle(this.props.user.id);
+        this.props.onUpdateUser(this.state.fio, this.props.user.id);
+        console.log(store.getState());
         event.preventDefault();
     }
 
@@ -129,6 +131,7 @@ class UsersList extends React.Component {
                     mode={mode}
                     openEditorHandle={this.openEditor}
                     closeEditorHandle={this.closeEditor}
+                    onUpdateUser={this.props.onUpdateUser}
                 />
             );
         });
@@ -147,7 +150,9 @@ class UsersView extends React.Component {
                 <UserForm
                     departments={this.props.departments}
                     onAddUser={this.props.onAddUser} />
-                <UsersList users={this.props.users} />
+                <UsersList
+                    users={this.props.users}
+                    onUpdateUser={this.props.onUpdateUser} />
             </div>
         );
     }
@@ -174,6 +179,14 @@ function addUser(fio) {
     }
 }
 
+function updateUser(fio, id) {
+    return {
+        type: 'UPDATE_USER',
+        fio: fio,
+        id: id
+    }
+}
+
 function journalApp(state, action) {
     if (typeof state === 'undefined') {
         // начальное состояние
@@ -194,6 +207,23 @@ function journalApp(state, action) {
                     }
                 ]
             });
+        case 'UPDATE_USER':
+            let userIndex = state.users.findIndex((val) => {return val.id === action.id});
+            if (-1 === userIndex) {
+                return state;
+            }
+            else {
+                let users = state.users
+                    .slice(0, userIndex)
+                    .concat({
+                        name: action.fio,
+                        id: action.id
+                    })
+                    .concat(state.users.slice(userIndex + 1, state.users.length));
+                return Object.assign({}, state, {
+                    users: users
+                });
+            }
         default:
             return state;
     }
@@ -212,6 +242,9 @@ const mapDispatchToProps = (dispatch) => {
     return {
         onAddUser: (fio) => {
             dispatch(addUser(fio))
+        },
+        onUpdateUser: (fio, id) => {
+            dispatch(updateUser(fio, id))
         }
     }
 };
